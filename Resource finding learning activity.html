@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop Category Activity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .activity-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .items-pool {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .items-pool h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        #itemsContainer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .categories {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .category {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            min-height: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .category.drag-over {
+            background: #e8f5e8;
+            border: 3px dashed #4CAF50;
+            transform: scale(1.02);
+        }
+
+        .category h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .prohub h3 {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .kmt h3 {
+            background: linear-gradient(135deg, #4834d4, #686de0);
+            color: white;
+        }
+
+        .sharepoint h3 {
+            background: linear-gradient(135deg, #00d2d3, #54a0ff);
+            color: white;
+        }
+
+        .item {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 8px 0;
+            cursor: grab;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #ffd89b, #19547b);
+            color: white;
+        }
+
+        .item.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+            cursor: grabbing;
+        }
+
+        .item.placed {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            border-color: #27ae60;
+            color: #2c3e50;
+        }
+
+        .item.placed:hover {
+            background: linear-gradient(135deg, #d299c2, #fef9d7);
+        }
+
+        .item.incorrect {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            border-color: #e74c3c;
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .item.incorrect:hover {
+            background: linear-gradient(135deg, #e17055, #fab1a0);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .drop-zone {
+            min-height: 120px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.has-items {
+            border-color: #27ae60;
+            background: #f8f9fa;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .completion-message {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .activity-area {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .categories {
+                order: 2;
+            }
+            
+            .items-pool {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Drag & Drop Category Activity</h1>
+        
+        <div class="activity-area">
+            <div class="items-pool">
+                <h2>📦 Items to Categorize</h2>
+                <div id="itemsContainer">
+                    <div class="item" draggable="true" data-category="sharepoint">Day Team log in details</div>
+                    <div class="item" draggable="true" data-category="kmt">How to use Genesys</div>
+                    <div class="item" draggable="true" data-category="prohub">Name Change Policy</div>
+                    <div class="item" draggable="true" data-category="sharepoint">ALMANAC / FCM OneNote</div>
+                    <div class="item" draggable="true" data-category="kmt">How to book flights</div>
+                    <div class="item" draggable="true" data-category="prohub">Ticket Centre Chat</div>
+                    <div class="item" draggable="true" data-category="sharepoint">After Hours Email Addresses</div>
+                    <div class="item" draggable="true" data-category="kmt">Step-by-step instructions for AH processes and procedures</div>
+                    <div class="item" draggable="true" data-category="prohub">Airline Contact Information</div>
+                    <div class="item" draggable="true" data-category="sharepoint">Rostering Information</div>
+                    <div class="item" draggable="true" data-category="kmt">How to book accommodation</div>
+                    <div class="item" draggable="true" data-category="prohub">Schedule Change/IROPs Policy</div>
+                    <div class="item" draggable="true" data-category="sharepoint">After Hours Team log in details</div>
+                    <div class="item" draggable="true" data-category="kmt">How to bill in AWS</div>
+                </div>
+            </div>
+
+            <div class="categories">
+                <div class="category prohub" data-category="prohub">
+                    <h3>🌟 Prohub</h3>
+                    <div class="drop-zone" id="prohub-zone"></div>
+                </div>
+
+                <div class="category kmt" data-category="kmt">
+                    <h3>📚 KMT</h3>
+                    <div class="drop-zone" id="kmt-zone"></div>
+                </div>
+
+                <div class="category sharepoint" data-category="sharepoint">
+                    <h3>📊 Teams SharePoint</h3>
+                    <div class="drop-zone" id="sharepoint-zone"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetActivity()">🔄 Reset Activity</button>
+        
+        <div class="completion-message" id="completionMessage">
+            🎉 Excellent work! All items have been correctly categorized!
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            ❌ Some items are in the wrong category! Items in red need to be moved to the correct location.
+        </div>
+    </div>
+
+    <script>
+        let draggedItem = null;
+        const correctAnswers = {
+            'prohub': ['Airline Contact Information', 'Schedule Change/IROPs Policy', 'Ticket Centre Chat', 'Name Change Policy'],
+            'kmt': ['Step-by-step instructions for AH processes and procedures', 'How to book accommodation', 'How to book flights', 'How to use Genesys', 'How to bill in AWS'],
+            'sharepoint': ['After Hours Team log in details', 'Day Team log in details', 'ALMANAC / FCM OneNote', 'Rostering Information', 'After Hours Email Addresses']
+        };
+
+        // Add drag event listeners to all items
+        document.querySelectorAll('.item').forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+
+        // Add drop event listeners to all drop zones
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('drop', handleDrop);
+            zone.addEventListener('dragenter', handleDragEnter);
+            zone.addEventListener('dragleave', handleDragLeave);
+        });
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            this.parentElement.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (!this.contains(e.relatedTarget)) {
+                this.parentElement.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.parentElement.classList.remove('drag-over');
+            
+            if (draggedItem) {
+                // Add the item to the drop zone
+                this.appendChild(draggedItem);
+                
+                // Check if item is in correct category
+                const itemCategory = draggedItem.getAttribute('data-category');
+                const dropZoneCategory = this.parentElement.getAttribute('data-category');
+                
+                // Remove any existing status classes
+                draggedItem.classList.remove('placed', 'incorrect');
+                
+                if (itemCategory === dropZoneCategory) {
+                    draggedItem.classList.add('placed');
+                } else {
+                    draggedItem.classList.add('incorrect');
+                }
+                
+                // Update drop zone appearance
+                this.classList.add('has-items');
+                
+                // Check if activity is complete
+                checkCompletion();
+            }
+        }
+
+        function checkCompletion() {
+            const allItems = document.querySelectorAll('.item');
+            const placedItems = document.querySelectorAll('.item.placed');
+            const incorrectItems = document.querySelectorAll('.item.incorrect');
+            const itemsInZones = document.querySelectorAll('.drop-zone .item');
+            
+            // Hide both messages initially
+            document.getElementById('completionMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // If all items are placed somewhere
+            if (itemsInZones.length === allItems.length) {
+                if (incorrectItems.length > 0) {
+                    // Show error message if there are incorrect items
+                    document.getElementById('errorMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorMessage').style.display = 'none';
+                    }, 5000);
+                } else if (placedItems.length === allItems.length) {
+                    // Show success message if all items are correct
+                    document.getElementById('completionMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('completionMessage').style.display = 'none';
+                    }, 5000);
+                }
+            }
+        }
+
+        function resetActivity() {
+            const itemsContainer = document.getElementById('itemsContainer');
+            const allItems = document.querySelectorAll('.item');
+            
+            // Move all items back to the items pool
+            allItems.forEach(item => {
+                item.classList.remove('placed', 'incorrect');
+                itemsContainer.appendChild(item);
+            });
+            
+            // Reset drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('has-items');
+            });
+            
+            // Hide all messages
+            document.getElementById('completionMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fe28e8f291aaf6',t:'MTc1ODAwMjU5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
